@@ -10,6 +10,7 @@ CONTACT = {
     "phone": "+33 7 45 03 31 38", "tel": "+33745033138",
     "email": "ivansereda91@yahoo.com",
     "instagram": "sereda_foto",
+    "telegram": "ivansereda",
 }
 
 ABOUT = {
@@ -137,6 +138,7 @@ def page(title: str, body: str, desc: str) -> str:
     <li><a href="tel:{CONTACT['tel']}">{e(CONTACT['phone'])}</a></li>
     <li><a href="mailto:{CONTACT['email']}">{e(CONTACT['email'])}</a></li>
     <li><a href="https://www.instagram.com/{CONTACT['instagram']}/" target="_blank" rel="noopener">Instagram @{CONTACT['instagram']}</a></li>
+    <li><a href="https://t.me/{CONTACT['telegram']}" target="_blank" rel="noopener">Telegram @{CONTACT['telegram']}</a></li>
   </ul>
   <div class="foot-small">Nice, France · © Ivan Sereda</div>
 </footer>

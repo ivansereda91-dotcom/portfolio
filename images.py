@@ -10,6 +10,23 @@ from PIL import Image, ImageOps
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEST = sys.argv[1] if len(sys.argv) > 1 else "/var/www/portfolio/img"
 SIZES = {"m": 1600, "s": 800}
+# Картинки для превью ссылок (Telegram, WhatsApp…): 1200×630, лёгкие
+OG = {"home": "hero", "groynes": "groynes/01", "the-sea": "the-sea/01", "no-name": "no-name/cover"}
+
+
+def previews():
+    """Делает img/og/*.jpg и apple-touch-icon.png из уже скачанных фото."""
+    os.makedirs(os.path.join(DEST, "og"), exist_ok=True)
+    for name, src in OG.items():
+        out = os.path.join(DEST, "og", f"{name}.jpg")
+        srcf = os.path.join(DEST, f"{src}_m.jpg")
+        if os.path.exists(srcf) and not os.path.exists(out):
+            im = ImageOps.fit(Image.open(srcf).convert("RGB"), (1200, 630), Image.LANCZOS)
+            im.save(out, "JPEG", quality=80, optimize=True, progressive=True)
+    icon = os.path.join(os.path.dirname(DEST.rstrip("/")), "apple-touch-icon.png")
+    srcf = os.path.join(DEST, "hero_m.jpg")
+    if os.path.exists(srcf) and not os.path.exists(icon):
+        ImageOps.fit(Image.open(srcf).convert("RGB"), (180, 180), Image.LANCZOS).save(icon, "PNG", optimize=True)
 
 
 def main():
@@ -37,6 +54,7 @@ def main():
         except Exception as ex:  # noqa: BLE001
             fail += 1
             print(f"  ! {path}: {ex}")
+    previews()
     print(f"Фото: новых {ok}, уже были {skip}, ошибок {fail}")
     return fail
 

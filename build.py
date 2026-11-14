@@ -6,6 +6,8 @@ import shutil
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "site")
 
+SITE = "https://ivansereda.fr"
+
 CONTACT = {
     "phone": "+33 7 45 03 31 38", "tel": "+33745033138",
     "email": "ivansereda91@yahoo.com",
@@ -106,7 +108,16 @@ def img(path: str, alt: str, sizes: str, cls: str = "", lazy: bool = True, idx: 
             f' data-full="{base}_m.jpg"{attrs}>')
 
 
-def page(title: str, body: str, desc: str) -> str:
+def short(text: str, n: int = 155) -> str:
+    """Описание для поисковиков и превью: до ~155 символов, по границе слова."""
+    if len(text) <= n:
+        return text
+    return text[:n].rsplit(" ", 1)[0].rstrip(",.;:—-– ") + "…"
+
+
+def page(title: str, body: str, desc: str, path: str = "/", og: str = "home") -> str:
+    url = SITE + path
+    desc = short(desc)
     return f"""<!doctype html>
 <html lang="en" data-lang="en">
 <head>
@@ -114,10 +125,21 @@ def page(title: str, body: str, desc: str) -> str:
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{e(title)}</title>
 <meta name="description" content="{e(desc)}">
+<link rel="canonical" href="{url}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Ivan Sereda">
+<meta property="og:url" content="{url}">
 <meta property="og:title" content="{e(title)}">
 <meta property="og:description" content="{e(desc)}">
-<meta property="og:image" content="https://ivansereda.fr/img/hero_m.jpg">
+<meta property="og:image" content="{SITE}/img/og/{og}.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{e(title)}">
+<meta property="og:locale" content="en_GB">
+<meta property="og:locale:alternate" content="fr_FR">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="stylesheet" href="/style.css">
 <script>try{{var l=localStorage.getItem('lang')||((navigator.language||'').slice(0,2)==='fr'?'fr':'en');document.documentElement.dataset.lang=l;document.documentElement.lang=l}}catch(e){{}}</script>
 </head>
@@ -203,7 +225,15 @@ def build():
         d = os.path.join(OUT, s["slug"])
         os.makedirs(d)
         with open(os.path.join(d, "index.html"), "w", encoding="utf-8") as f:
-            f.write(page(f"{s['title']['en']} — Ivan Sereda", body, s["text"]["en"][0]))
+            f.write(page(f"{s['title']['en']} — Ivan Sereda", body, s["text"]["en"][0],
+                         f"/{s['slug']}/", s["slug"]))
+
+    urls = ["/"] + [f"/{x['slug']}/" for x in SERIES]
+    with open(os.path.join(OUT, "sitemap.xml"), "w", encoding="utf-8") as f:
+        f.write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+                + "".join(f"  <url><loc>{SITE}{u}</loc></url>\n" for u in urls) + "</urlset>\n")
+    with open(os.path.join(OUT, "robots.txt"), "w", encoding="utf-8") as f:
+        f.write(f"User-agent: *\nAllow: /\nSitemap: {SITE}/sitemap.xml\n")
 
     for name in ("style.css", "site.js", "favicon.svg", "404.html"):
         shutil.copy(os.path.join(os.path.dirname(os.path.abspath(__file__)), name), OUT)
